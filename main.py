@@ -1,9 +1,9 @@
 import random as rand
 
 class Snuggle:
-    def __init__(self, start_size, start_hunger, start_thirst):
+    def __init__(self, start_size, start_hunger, start_thirst, start_x, start_y):
         self.size = start_size
-        self.locations = [[500, 500]]
+        self.locations = [[start_x, start_y]]
 
         self.hunger = start_hunger
         self.thirst = start_thirst
@@ -13,7 +13,7 @@ class Snuggle:
 
         life(day)
 
-    def life(self, day):        
+    def update(self, agar)
         self.location.append(self.makeDecision(self.hunger, self.thirst))
         self.update_vitals()
         
@@ -42,7 +42,9 @@ class Snuggle:
     
         return
 
-    def find_highest_desireability()
+    def find_highest_desireability(self):
+        for l in self.locations:
+             
         return
 
 
@@ -52,6 +54,7 @@ class Section:
         self._water = water
         self.light = light
         self._source = False
+        self.contains_bacteria = False
 
     def harvest(self):
         return
@@ -83,11 +86,11 @@ class Section:
 
 """
 SOURCE DISTRIBUTIONS
-S 0.1 
-A 0.2
-B 0.4
-C 0.2
-D 0.1
+S 0.1 100%
+A 0.2 90%
+B 0.4 80%
+C 0.2 70%
+D 0.1 60%
 """
 class Agar:
     def __init__(self):
@@ -102,16 +105,30 @@ class Agar:
             self.agar[rand.randint(0, len(agar))][rand.randint(0, len(agar[]))].water(100)
 
     def spread_resources(self, amount):
+        return
+
+
+
+    def get_adjacent(self, x, y):
+        l = []
+        l.append(self.agar[y+1][x])
+        l.append(self.agar[y-1][x])
+        l.append(self.agar[y][x+1])
+        l.append(self.agar[y][x-1])
+        return l
 
 
 
     
 
 if __name__ == "main":
-    
-agar = Agar()
-agar.add_food(10)
-agarf.add_water(10)
+    agar = Agar()
+    agar.add_food(10)
+    agarf.add_water(10)
+
+    b = Bacteria(1, 50, 50, 500, 500)
+    while True:
+        b.update(agar)
 
 """
 o
