@@ -1,3 +1,5 @@
+import random as rand
+
 class Snuggle:
     def __init__(self, start_size, start_hunger, start_thirst):
         self.size = start_size
@@ -11,8 +13,7 @@ class Snuggle:
 
         life(day)
 
-        
-    def life(self, day):
+    def life(self, day):        
         self.location.append(self.makeDecision(self.hunger, self.thirst))
         self.update_vitals()
         
@@ -38,22 +39,80 @@ class Snuggle:
         return
 
     def get_next_decision(self):
+    
+        return
+
+    def find_highest_desireability()
         return
 
 
-
-class Pocket:
-    def __init__(self, nutrient, humidity, light):
-        self.nutrient = nutrient
-        self.humidity = humidity
+class Section:
+    def __init__(self, nutrient, water, light):
+        self._nutrient = nutrient
+        self._water = water
         self.light = light
+        self._source = False
 
-    def harvest()
+    def harvest(self):
+        return
+    
+    @property
+    def nutrient(self):
+        return self._x
+
+    @nutrient.setter
+    def nutrient(self, n):
+        self._nutrient = n
+
+    @property
+    def water(self):
+        return self._x
+
+    @water.setter
+    def water(self, w):
+        self._water = w
+
+    @property
+    def source(self):
+        return self.source
+    
+    @source.setter
+    def source(self, s):
+        self._source = s
+
+
+"""
+SOURCE DISTRIBUTIONS
+S 0.1 
+A 0.2
+B 0.4
+C 0.2
+D 0.1
+"""
+class Agar:
+    def __init__(self):
+        self.agar = [[Section(0, 0, 0) for _ in range(20)] for _ in range(20)]
+
+    def add_food(self, n):
+        for i _ in range(n):
+            self.agar[rand.randint(0, len(agar))][rand.randint(0, len(agar[]))].nutrient(100)
+
+    def add_water(self, n):
+        for i _ in range(n):
+            self.agar[rand.randint(0, len(agar))][rand.randint(0, len(agar[]))].water(100)
+
+    def spread_resources(self, amount):
+
+
 
     
 
 if __name__ == "main":
     
-    agar = [[Pocket(0, 0, 0) for _ in range(10)] for _ in range(10) ]
-    s = Snuggle(1, 10, 10)
+agar = Agar()
+agar.add_food(10)
+agarf.add_water(10)
 
+"""
+o
+"""
