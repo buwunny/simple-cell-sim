@@ -4,11 +4,11 @@ import random as rand
 import pygame
 
 class Snuggle:
-    def __init__(self, start_size, start_hunger, start_thirst, start_x, start_y):
+    def __init__(self, start_size, start_x, start_y):
         self.size = start_size
         self.locations = [[start_x, start_y]]
-        self.hunger = start_hunger
-        self.thirst = start_thirst
+        self.hunger = 100
+        self.thirst = 100       
         self.day = 0
         self.starving_days = 0
         self.thirsting_days = 0
@@ -63,6 +63,62 @@ class Snuggle:
         return
 
 
+class Rawr:
+    def __init__(self, start_size, start_x, start_y):
+        self.alive = True
+        self.size = start_size
+        self.x = start_x
+        self.y = start_y
+        self.split_size = 10
+        self.collider = pygame.Rect(start_x - start_size, start_y - start_size, start_size * 2, start_size * 2)
+        self.location = [start_x, start_y]
+        self.starving_days = 0
+        self.count = 0
+
+    def update(self, agar):
+        # if self.alive:
+        self.collider = pygame.Rect(self.x - self.size, self.y - self.size, self.size * 2, self.size * 2)
+        self.location = [self.x, self.y]
+        self.count += 1
+        if self.count == 60:
+            print(self.starving_days)
+            self.starving_days += 1
+            self.count = 0
+
+        if self.starving_days >= 5:
+            self.alive = False
+            corpse_pos = agar.agar[self.y][self.x]
+            corpse_pos.nutrient = self.size * 0.7
+            corpse_pos.food = True
+            agar.foods.append(corpse_pos)
+            self.size = 0
+
+        self.random_move(agar)
+        if self.size >= self.split_size:
+            return self.split()
+        else:
+            return 0
+
+
+    def random_move(self, agar):
+        delta_x = rand.randint(0, 20) * rand.randint(-1, 1)
+        delta_y = rand.randint(0, 20) * rand.randint(-1, 1)
+        if (self.x + delta_x < agar.width - self.size and self.x + delta_x > self.size
+            and
+            self.y + delta_y < agar.height - self.size and self.y + delta_y > self.size):
+            self.x += delta_x
+            self.y += delta_y
+
+    def split(self):
+        r = Rawr(int(self.size/2), self.x - 5, self.y)
+        self.size /= 2
+        self.x += 5
+        return r
+
+    def eat(self):
+        self.size += 0.7
+        self.starving_days = 0
+
 class Section:
     def __init__(self, x, y):
         self.x = x
@@ -72,24 +128,28 @@ class Section:
         self.light = 0
         self.food = False
         self.water = False
-        self.alive = False
         self.change = False
 
         self._color = (0, 0, 0)
+        self._collider = pygame.Rect(self.x, self.y, self.nutrient, self.nutrient)
 
     @property
     def color(self):
-        if self.alive:
-            return (255, 0, 0)
         if self.food:
             return (0, 255, 0)
         if self.water:
             return (0, 0, 255)
+        else:
+            return (0, 0, 0)
+    
+    @property
+    def collider(self):
+        return pygame.Rect(self.x - self.nutrient, self.y - self.nutrient, self.nutrient * 2 , self.nutrient * 2)
+
     
 
     def harvest(self):
-        return
-    
+        self.nutrient -= 1
 
 
 """
@@ -105,34 +165,19 @@ class Agar:
         self.width = width
         self.height = height
         self.agar = [[Section(i, j) for i in range(self.width)] for j in range(self.height)]
+        self.foods = []
 
     def add_food(self, n):
         for _ in range(0, n):
             x = rand.randint(0, self.width-1)
             y = rand.randint(0, self.height-1)
             sec = self.agar[y][x]
-             
-            sec.nutrient = 100
+            self.foods.append(sec)
+            sec.nutrient = 10 * (rand.randint(5, 10) / 10)
             sec.food = True
             sec.change = True
             
-            for i in self.get_adjacent(x, y):
-                if i.nutrient == 0:
-                    i.nutrient += 50
-                    i.food, i.change = True, True
-                for j in self.get_adjacent(i.x, i.y):
-                    if j.nutrient == 0:
-                        j.nutrient += 25
-                        j.food, j.change = True, True
 
-    def see_food(self):
-        a = []
-        for row in self.agar:
-            for column in row:
-                if column.nutrient != 0:
-                    a.append([column.x, column.y])
-        return a
-                
     # def add_water(self, n):
     #     for i _ in range(n):
     #         self.agar[rand.randint(0, len(agar))][rand.randint(0, len(agar[]))].water(100)
@@ -163,7 +208,8 @@ if __name__ == "__main__":
     screen = pygame.display.set_mode((w, h))
     clock = pygame.time.Clock()
     agar = Agar(w, h)
-    guy = Snuggle(0, 0, 0, 100, 100)
+    # guy = Snuggle(0, int(w/2), int(h / 2))
+    b = [Rawr(5, int(w/2), int(h / 2))]
 
     # player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
     running = True
@@ -172,8 +218,7 @@ if __name__ == "__main__":
 
         if start:
             
-            screen.fill(0)
-            agar.add_food(50)
+            agar.add_food(500)
             start = False
 
         # poll for events
@@ -181,25 +226,41 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+        screen.fill(0)
+        for f in agar.foods:
+            if f.nutrient <= 0:
+                agar.foods.remove(f)
+            # pygame.draw.rect(screen, "white", f.collider)
+            pygame.draw.circle(screen, f.color, [f.x, f.y], f.nutrient)
 
-        pixel_array = pygame.PixelArray(screen)
+        # pygame.draw.rect(screen, "white", guy.collider)
+        for i in b:
+            if not i.alive:
+                b.remove(i)
+            pygame.draw.circle(screen, "red", i.location, i.size)
 
-        for r in agar.agar:
-            for c in r:
-                if c.change:
-                    pixel_array[c.x, c.y] = c.color        
-                    c.change = False
-
-        pixel_array.close()
         
-        # pygame.draw.circle(screen, "red", player_pos, 40)
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_SPACE]:
-            guy.update(agar)
+        
+        # keys = pygame.key.get_pressed()
+        # if keys[pygame.K_SPACE]:
+        for o in b:
+            for food in agar.foods:
+                if food.collider.colliderect(o.collider):
+                    food.harvest()
+                    o.eat()
 
         # flip() the display to put your work on screen
         pygame.display.flip()
 
+        # for o in range(0, len(b)):
+        #     b[o]
+        #     b
+        for i in range(0, len(b)):
+            i = b[i]
+            a = i.update(agar)
+            if (a != 0):
+                b.append(a)
+                
         clock.tick(60)
 
     pygame.quit()
