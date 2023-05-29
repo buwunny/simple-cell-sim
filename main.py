@@ -1,23 +1,34 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random as rand
+import pygame
 
 class Snuggle:
     def __init__(self, start_size, start_hunger, start_thirst, start_x, start_y):
         self.size = start_size
         self.locations = [[start_x, start_y]]
-
         self.hunger = start_hunger
         self.thirst = start_thirst
         self.day = 0
         self.starving_days = 0
         self.thirsting_days = 0
 
-        life(day)
+        # life(day)
 
     def update(self, agar):
-        self.locations.append(self.makeDecision(self.hunger, self.thirst))
-        self.update_vitals()
+        l = len(self.locations)
+        for i in range(0, l):
+            pos = self.locations[i]
+            new_pos = agar.get_adjacent(pos[0], pos[1])
+            for i in new_pos:
+                if not i.alive:
+                    sec = agar.agar[i.y][i.x]
+                    sec.alive = True
+                    sec.change = True
+                    self.locations.append([i.x, i.y])
+
+        # self.locations.append(self.makeDecision(self.hunger, self.thirst))
+        # self.update_vitals()
         
         # if self.is_alive:
         #     life(day += 1)
@@ -59,8 +70,22 @@ class Section:
         self.nutrient = 0
         self.water = 0
         self.light = 0
-        self.source = False
-        self.contains_bacteria = False
+        self.food = False
+        self.water = False
+        self.alive = False
+        self.change = False
+
+        self._color = (0, 0, 0)
+
+    @property
+    def color(self):
+        if self.alive:
+            return (255, 0, 0)
+        if self.food:
+            return (0, 255, 0)
+        if self.water:
+            return (0, 0, 255)
+    
 
     def harvest(self):
         return
@@ -76,54 +101,53 @@ C 0.2 70%
 D 0.1 60%
 """
 class Agar:
-    def __init__(self, size):
-        self.size = size
-        self.agar = [[Section(i, j) for i in range(self.size)] for j in range(self.size)]
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.agar = [[Section(i, j) for i in range(self.width)] for j in range(self.height)]
 
     def add_food(self, n):
-        l = self.size-1
         for _ in range(0, n):
-            x = rand.randint(0, l)
-            y = rand.randint(0, l)
-            self.agar[y][x].nutrient = 100
+            x = rand.randint(0, self.width-1)
+            y = rand.randint(0, self.height-1)
+            sec = self.agar[y][x]
+             
+            sec.nutrient = 100
+            sec.food = True
+            sec.change = True
+            
             for i in self.get_adjacent(x, y):
                 if i.nutrient == 0:
                     i.nutrient += 50
+                    i.food, i.change = True, True
                 for j in self.get_adjacent(i.x, i.y):
                     if j.nutrient == 0:
                         j.nutrient += 25
-        self.agar[0][0].nutrient = -100
+                        j.food, j.change = True, True
 
     def see_food(self):
         a = []
         for row in self.agar:
-            b = []
             for column in row:
-                if column != -100:
-                    b.append(column.nutrient)
-                else:
-                    b.append(-100)
-            a.append(b)
+                if column.nutrient != 0:
+                    a.append([column.x, column.y])
         return a
+                
     # def add_water(self, n):
     #     for i _ in range(n):
     #         self.agar[rand.randint(0, len(agar))][rand.randint(0, len(agar[]))].water(100)
 
 
-    def spread_resources(self, amount):
-        return
-
-
 
     def get_adjacent(self, x, y):
         l = []
-        if y + 1 < self.size:
+        if y + 1 < self.height:
             l.append(self.agar[y+1][x])
-        if y - 1 >= 0:
+        if y - 1 > 0:
             l.append(self.agar[y-1][x])
-        if x + 1 < self.size:
+        if x + 1 < self.width:
             l.append(self.agar[y][x+1])
-        if x - 1 >= 0:
+        if x - 1 > 0:
             l.append(self.agar[y][x-1])
         return l
 
@@ -132,24 +156,50 @@ class Agar:
     
 
 if __name__ == "__main__":
-    agar = Agar(50)
+    w = 1920
+    h = 1080
     
-    agar.add_food(50)
-    A = np.array(agar.see_food())
-    # agarf.add_water(10)
+    pygame.init()
+    screen = pygame.display.set_mode((w, h))
+    clock = pygame.time.Clock()
+    agar = Agar(w, h)
+    guy = Snuggle(0, 0, 0, 100, 100)
 
-    # b = Bacteria(1, 50, 50, 500, 500)
-    # while True:
-    #     b.update(agar)
+    # player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
+    running = True
+    start = True
+    while running:
 
-    # H = np.array([[rand.randint(0, 100) for _ in range(0, 1000)] for _ in range(0, 1000)])
-    
+        if start:
+            
+            screen.fill(0)
+            agar.add_food(50)
+            start = False
 
-    plt.imshow(A, interpolation='bilinear')
-    
-    
-    plt.show()
+        # poll for events
+        # pygame.QUIT event means the user clicked X to close your window
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
 
-"""
-o
-"""
+        pixel_array = pygame.PixelArray(screen)
+
+        for r in agar.agar:
+            for c in r:
+                if c.change:
+                    pixel_array[c.x, c.y] = c.color        
+                    c.change = False
+
+        pixel_array.close()
+        
+        # pygame.draw.circle(screen, "red", player_pos, 40)
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE]:
+            guy.update(agar)
+
+        # flip() the display to put your work on screen
+        pygame.display.flip()
+
+        clock.tick(60)
+
+    pygame.quit()
