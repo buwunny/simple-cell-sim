@@ -109,7 +109,7 @@ if __name__ == "__main__":
     agar = Agar(w, h)
     agar.add_food(500)
     cells = [Cell(5, int(w/2), int(h / 2))]
-
+    
     running = True
     while running:
         for event in pygame.event.get():
@@ -144,12 +144,6 @@ if __name__ == "__main__":
         
         cell_data.append(len(cells))
         food_data.append(len(agar.foods))
-        total_nutrient = 0
-        for i in agar.foods:
-            total_nutrient += i.nutrient
-        for i in cells:
-            total_nutrient += i.size
-        nutrient_data.append(total_nutrient)
         timestamps.append(pygame.time.get_ticks() / 1000)
 
         clock.tick(60)
@@ -162,10 +156,8 @@ if __name__ == "__main__":
     plt.plot(x, y, color="red", label="number of cells")
     y = np.array(food_data)
     plt.plot(x, y, color="green", label="number of food sources")
-    y = np.array(nutrient_data)
-    plt.plot(x, y, color="blue", label="total nutrient")
 
-    plt.xlabel("Time")
+    plt.xlabel("Time (seconds)")
     plt.legend(loc="upper right")
     plt.show()
     
