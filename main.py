@@ -10,14 +10,18 @@ class Cell:
         self.x = start_x
         self.y = start_y
         self.split_size = 10
-        self.collider = pygame.Rect(start_x - start_size, start_y - start_size, start_size * 2, start_size * 2)
-        self.location = [start_x, start_y]
         self.starving_days = 0
         self.count = 0
 
+    @property
+    def collider(self):
+        return pygame.Rect(self.x - self.size, self.y - self.size, self.size * 2, self.size * 2)
+
+    @property
+    def location(self):
+        return [self.x, self.y]
+
     def update(self, agar):
-        self.collider = pygame.Rect(self.x - self.size, self.y - self.size, self.size * 2, self.size * 2)
-        self.location = [self.x, self.y]
         self.count += 1
         if self.count == 60:
             self.starving_days += 1
@@ -66,7 +70,6 @@ class Section:
         self.food = False
 
         self.food_color = (0, 255, 0)
-        self._collider = pygame.Rect(self.x, self.y, self.nutrient, self.nutrient)
     
     @property
     def collider(self):
@@ -146,7 +149,7 @@ if __name__ == "__main__":
         food_data.append(len(agar.foods))
         timestamps.append(pygame.time.get_ticks() / 1000)
 
-        clock.tick(60)
+        # clock.tick(60)
 
     pygame.quit()
 
